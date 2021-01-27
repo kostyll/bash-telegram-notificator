@@ -40,7 +40,7 @@ try_build() {
 
 	CURRENT_BRANCH_NAME=$(git_get_branch_by_commit $CURRENT_COMMIT)
 
-	echo "finding branch which contains $CURRENT_COMMIT"
+	echo "finding branch $CURRENT_BRANCH_NAME which contains $CURRENT_COMMIT"
 	echo $(git branch -a --contains  $COMMIT_ID 2>&1 | grep -v HEAD | sed 's/\*\ //g' | sed 's/ //g' | sed 's/remotes\///g' | sed 's/origin\///g')
 
 
@@ -59,20 +59,20 @@ try_build() {
 	#docker run --tty --interactive --volume=$(pwd):/opt/workspace --workdir=/opt/workspace --rm cangol/android-gradle  /bin/sh -c "./gradlew build && echo \$?"
 
 	rm -f $(pwd)/build.successful
-	rm -rf app/build/outputs/*
+	rm -rf $(pwd)/app/build/outputs/*
 
 	mkdir -p $(pwd)/builds/$CURRENT_BRANCH_NAME/$CURRENT_COMMIT
 
 	if [ $DOCKER_IMAGES_PRESENT_COUNT = "1" ]; then
 		# building in old image
 		echo -e "\n\n\IMAGE PRESENT!!!"
-		CNT_ID=$(docker run -d -v $(pwd):/opt/workspace --workdir=/opt/workspace local-android-gradle:build-$GRADLE_DEPS_HASH /bin/sh -c "./gradlew build && touch /opt/workspace/build.successful" )
+		CNT_ID=$(docker run -d -v $(pwd):/opt/workspace --workdir=/opt/workspace local-android-gradle:build-$GRADLE_DEPS_HASH /bin/sh -c "./gradlew clean && ./gradlew build && touch /opt/workspace/build.successful" )
 		sleep 3
 		docker logs -f $CNT_ID
 	else
 		# building new image
 		echo -e "\n\n\CREATING NEW IMAGE!!!"
-		CNT_ID=$(docker run -d -v $(pwd):/opt/workspace --workdir=/opt/workspace cangol/android-gradle /bin/sh -c "./gradlew build && touch /opt/workspace/build.successful")
+		CNT_ID=$(docker run -d -v $(pwd):/opt/workspace --workdir=/opt/workspace cangol/android-gradle /bin/sh -c "./gradlew clean && ./gradlew build && touch /opt/workspace/build.successful")
 		sleep 3
 		docker logs -f $CNT_ID
 		docker commit $CNT_ID local-android-gradle:build-$GRADLE_DEPS_HASH
@@ -101,10 +101,12 @@ truncate -s 0 $NEW_COMMIT_TO_TEST_FILE
 echo "STARTING ..."
 
 tail -f $NEW_COMMIT_TO_TEST_FILE | while true; do
-	read -r COMMIT_ID;
+	read -r COMMIT_INFO;
+	COMMIT_ID=$(echo $COMMIT_INFO | awk -F ':' '{ print $1 }')
+	COMMIT_BRANCH=$(echo $COMMIT_INFO | awk -F ':' '{ print $2 }')
 	echo "PROCESSING commit $COMMIT_ID"
 	tg_notify "PROCESSING commit $COMMIT_ID"
-	git pull --all
+	git pull --all || git pull origin $COMMIT_BRANCH
 	git checkout $COMMIT_ID && try_build $COMMIT_ID
 	
 done

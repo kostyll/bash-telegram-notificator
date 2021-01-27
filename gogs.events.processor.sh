@@ -74,7 +74,7 @@ show_commit() {
 
 	tg_notify_html "$OUTPUT $BR Message: $BR $MESSAGE"
 
-	echo $COMMIT_ID >> $NEW_COMMIT_TO_TEST_FILE
+	echo "COMMIT_ID:$HEAD_BRANCH" >> $NEW_COMMIT_TO_TEST_FILE
 }
 
 show_commits() {
