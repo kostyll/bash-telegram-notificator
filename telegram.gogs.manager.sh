@@ -131,7 +131,7 @@ git_get_current_branch() {
 
 git_get_branch_by_commit() {
     COMMIT_ID=$1
-    echo $(git branch -a --contains  $COMMIT_ID 2>&1 | grep -v HEAD | sed 's/\*\ //g' | sed 's/ //g' | sed 's/remotes\///g' | sed 's/origin\///g' | awk -F ' ' '{ print $NF }' )
+    echo $(git branch -a --contains  $COMMIT_ID 2>&1 | grep -v HEAD | sed 's/\*\ //g' | sed 's/ //g' | sed 's/remotes\///g' | sed 's/origin\///g' | tail -n 1 | awk -F ' ' '{ print $NF }' )
 }
 
 git_pull() {
