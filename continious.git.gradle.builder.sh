@@ -64,6 +64,7 @@ try_build() {
 	rm -rf $(pwd)/app/build/outputs/*
 
 	mkdir -p $(pwd)/builds/$CURRENT_BRANCH_NAME/$CURRENT_COMMIT
+	echo $COMMIT_ID >> $BUILDED_COMMITS_FILE
 
 	if [ $DOCKER_IMAGES_PRESENT_COUNT = "1" ]; then
 		# building in old image
@@ -86,7 +87,6 @@ try_build() {
 		cp -R app/build/outputs builds/$CURRENT_BRANCH_NAME/$CURRENT_COMMIT
 		tg_send_file builds/$CURRENT_BRANCH_NAME/$CURRENT_COMMIT/outputs/apk/debug/app-debug.apk "#buid $PREFIX:debug version"
 		tg_send_file builds/$CURRENT_BRANCH_NAME/$CURRENT_COMMIT/outputs/apk/release/app-release-unsigned.apk "#build $PREFIX:release-unsigned version"
-		echo $COMMIT_ID >> $BUILDED_COMMITS_FILE
 	else
 		tg_notify "BUILD $PREFIX FAILED"
 		image_file="$(mktemp).png"
