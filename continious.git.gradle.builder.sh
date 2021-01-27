@@ -18,6 +18,8 @@ TELEGRAM_GOGS_MANAGER=../telegram.gogs.manager.sh \
 EOF
 chmod +x $CURR_SCRIPT_TO_SAVE
 
+BUILDED_COMMITS_FILE="$(pwd)/.builded_commits"
+
 
 git config --global credential.helper store
 
@@ -84,6 +86,7 @@ try_build() {
 		cp -R app/build/outputs builds/$CURRENT_BRANCH_NAME/$CURRENT_COMMIT
 		tg_send_file builds/$CURRENT_BRANCH_NAME/$CURRENT_COMMIT/outputs/apk/debug/app-debug.apk "#buid $PREFIX:debug version"
 		tg_send_file builds/$CURRENT_BRANCH_NAME/$CURRENT_COMMIT/outputs/apk/release/app-release-unsigned.apk "#build $PREFIX:release-unsigned version"
+		echo $COMMIT_ID >> $BUILDED_COMMITS_FILE
 	else
 		tg_notify "BUILD $PREFIX FAILED"
 		image_file="$(mktemp).png"
@@ -104,6 +107,9 @@ tail -f $NEW_COMMIT_TO_TEST_FILE | while true; do
 	read -r COMMIT_INFO;
 	COMMIT_ID=$(echo $COMMIT_INFO | awk -F ':' '{ print $1 }')
 	COMMIT_BRANCH=$(echo $COMMIT_INFO | awk -F ':' '{ print $2 }')
+
+	ALREADY_BUILDED=$(cat $BUILDED_COMMITS_FILE | grep $COMMIT_ID | wc -l)
+	test "$ALREADY_BUILDED" = "0" || continue
 	echo "PROCESSING commit $COMMIT_ID"
 	tg_notify "PROCESSING commit $COMMIT_ID at branch $COMMIT_BRANCH"
 	git pull --all || git pull origin $COMMIT_BRANCH
