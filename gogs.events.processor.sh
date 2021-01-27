@@ -74,7 +74,7 @@ show_commit() {
 
 	tg_notify_html "$OUTPUT $BR Message: $BR $MESSAGE"
 
-	echo "COMMIT_ID:$HEAD_BRANCH" >> $NEW_COMMIT_TO_TEST_FILE
+	echo "#commit $BR COMMIT_ID:$HEAD_BRANCH" >> $NEW_COMMIT_TO_TEST_FILE
 }
 
 show_commits() {
@@ -92,9 +92,10 @@ show_commits() {
 	echo "LEN=$LEN"
 	
 	for i in $(seq 0 1 `expr $LEN - 1`); do
+		echo -e "\nProcessing commit $i"
 		E=$(echo $COMMITS_ARRAY | jq ".[$i]")
-		echo "E='$E'"
-		test "$E" = "null" && break
+		echo -e "\nE='$E'"
+		test "$E" = "null" && continue
 
 		show_commit $REPOSITORY $REPOSITORY_URL $OWNER $HEAD_BRANCH "$E"
 	done
@@ -122,7 +123,7 @@ show_issue_info() {
 		ISSUE_BY=$(echo $ISSUE_INFO | jq '.user.username'  | sed 's/"//g')
 		ISSUE_BODY=$(echo $ISSUE_INFO | jq '.body'  | sed 's/"//g')
 		ISSUE_TO=$(echo $ISSUE_INFO | jq '.assignee.username'  | sed 's/"//g')
-		MSG="issue $ISSUE_ACTION $BR $ISSUE_NAME : $ISSUE_TAG $BR $ISSUE_BY ==> $ISSUE_TO $BR $ISSUE_BODY"
+		MSG="#issue $ISSUE_ACTION $BR $ISSUE_NAME : $ISSUE_TAG $BR $ISSUE_BY ==> $ISSUE_TO $BR $ISSUE_BODY"
 		echo "$MSG"
 		tg_notify_html "$MSG"
 	else
@@ -132,7 +133,7 @@ show_issue_info() {
 		COMMENT_BY=$(echo $COMMENT_INFO | jq '.user.username'  | sed 's/"//g' )
 		COMMENT_BODY=$(echo $COMMENT_INFO | jq '.body'  | sed 's/"//g')
 
-		MSG="comment $ISSUE_ACTION $BR $ISSUE_NAME $BR $COMMENT_BY: $BR $COMMENT_BODY"
+		MSG="#issue comment $ISSUE_ACTION $BR $ISSUE_NAME $BR $COMMENT_BY: $BR $COMMENT_BODY"
 		echo "$MSG"
 		tg_notify_html "$MSG"
 	fi

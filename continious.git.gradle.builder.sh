@@ -82,15 +82,15 @@ try_build() {
 		tg_notify "BUILD $PREFIX SUCCESSFULL"
 
 		cp -R app/build/outputs builds/$CURRENT_BRANCH_NAME/$CURRENT_COMMIT
-		tg_send_file builds/$CURRENT_BRANCH_NAME/$CURRENT_COMMIT/outputs/apk/debug/app-debug.apk "$PREFIX:debug version"
-		tg_send_file builds/$CURRENT_BRANCH_NAME/$CURRENT_COMMIT/outputs/apk/release/app-release-unsigned.apk "$PREFIX:release-unsigned version"
+		tg_send_file builds/$CURRENT_BRANCH_NAME/$CURRENT_COMMIT/outputs/apk/debug/app-debug.apk "#buid $PREFIX:debug version"
+		tg_send_file builds/$CURRENT_BRANCH_NAME/$CURRENT_COMMIT/outputs/apk/release/app-release-unsigned.apk "#build $PREFIX:release-unsigned version"
 	else
 		tg_notify "BUILD $PREFIX FAILED"
 		image_file="$(mktemp).png"
 		# echo "capturing"
 		tmux_catpure_pane "$PANE_ID" $image_file
 		echo "sending photo... to $image_file"
-		tg_send_photo "$image_file" "BUILD $PREFIX FAILED"
+		tg_send_photo "$image_file" "#build BUILD $PREFIX FAILED"
 		echo "was sent ?"
 		# rm -rf $image_file
 	fi
@@ -105,7 +105,7 @@ tail -f $NEW_COMMIT_TO_TEST_FILE | while true; do
 	COMMIT_ID=$(echo $COMMIT_INFO | awk -F ':' '{ print $1 }')
 	COMMIT_BRANCH=$(echo $COMMIT_INFO | awk -F ':' '{ print $2 }')
 	echo "PROCESSING commit $COMMIT_ID"
-	tg_notify "PROCESSING commit $COMMIT_ID"
+	tg_notify "PROCESSING commit $COMMIT_ID at branch $COMMIT_BRANCH"
 	git pull --all || git pull origin $COMMIT_BRANCH
 	git checkout $COMMIT_ID && try_build $COMMIT_ID
 	
